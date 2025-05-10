@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>减脂助手 - 科学减肥（Beta）</title>
+  <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.20.6/babel.min.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    // Login 组件
+    function Login({ onLogin }) {
+      const [password, setPassword] = React.useState('');
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (password === '123456789') {
+          onLogin(true);
+        } else {
+          alert('密码错误');
+        }
+      };
+      return (
+        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+          <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
+            <h2 className="text-2xl mb-4">请输入密码（应该没有问题吧。。。）</h2>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="border p-2 w-full mb-4"
+              placeholder="密码"
+            />
+            <button type="submit" className="bg-blue-500 text-white p-2 w-full rounded hover:bg-blue-600">
+              登录（）
+            </button>
+          </form>
+        </div>
+      );
+    }
+
+    // Navbar 组件
+    function Navbar() {
+      return (
+        <nav className="bg-white shadow-md py-4 px-6 fixed w-full top-0 z-10">
+          <div className="max-w-7xl mx-auto flex justify-between items-center">
+            <h1 className="text-2xl font-bold text-teal-600">减脂助手</h1>
+            <div className="space-x-4">
+              <a href="#home" className="text-gray-700 hover:text-teal-600">首页</a>
+              <a href="#plan" className="text-gray-700 hover:text-teal-600">减肥计划</a>
+              <a href="#articles" className="text-gray-700 hover:text-teal-600">文章资源</a>
+              <a href="#products" className="text-gray-700 hover:text-teal-600">产品</a>
+            </div>
+          </div>
+        </nav>
+      );
+    }
+
+    // Hero 组件
+    function Hero() {
+      return (
+        <section id="home" className="min-h-screen flex items-center justify-center bg-gradient-to-r from-teal-100 to-blue-100">
+          <div className="text-center max-w-3xl mx-auto px-4">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-800 mb-4">科学减脂，健康生活</h2>
+            <p className="text-lg text-gray-600 mb-6">通过个性化减肥计划和专业资源，助您实现健康目标！</p>
+            <button
+              onClick={() => document.getElementById('plan').scrollIntoView({ behavior: 'smooth' })}
+              className="inline-block bg-teal-600 text-white py-3 px-6 rounded-lg hover:bg-teal-700 transition"
+            >
+              开始计划
+            </button>
+          </div>
+        </section>
+      );
+    }
+
+    // PlanGenerator 组件
+    function PlanGenerator() {
+      const [formData, setFormData] = React.useState({
+        weight: '',
+        height: '',
+        age: '',
+        gender: 'male',
+        activityLevel: 'low',
+        weightGoal: 'lose',
+        dietaryPreference: 'none'
+      });
+      const [plan, setPlan] = React.useState(null);
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+      const calculatePlan = (e) => {
+        e.preventDefault();
+        const { weight, height, age, gender, activityLevel, weightGoal, dietaryPreference } = formData;
+        if (!weight || !height || !age) return;
+
+        const weightNum = parseFloat(weight);
+        const heightNum = parseFloat(height);
+        const ageNum = parseFloat(age);
+
+        // 计算BMR
+        let bmr = gender === 'male'
+          ? 10 * weightNum + 6.25 * heightNum - 5 * ageNum + 5
+          : 10 * weightNum + 6.25 * heightNum - 5 * ageNum - 161;
+
+        const activityFactors = { low: 1.2, medium: 1.55, high: 1.9 };
+        const tdee = bmr * activityFactors[activityLevel];
+
+        // 根据体重目标调整热量
+        let calorieIntake = weightGoal === 'lose' ? tdee - 600 : tdee;
+
+        // 根据饮食偏好调整宏量营养素
+        let protein = (weightNum * 1.6).toFixed(0);
+        let fat = ((calorieIntake * 0.25) / 9).toFixed(0);
+        let carbs = ((calorieIntake - protein * 4 - fat * 9) / 4).toFixed(0);
+        let dietNote = '';
+        if (dietaryPreference === 'vegetarian') {
+          dietNote = '建议选择植物性蛋白来源，如豆类、坚果。';
+        } else if (dietaryPreference === 'vegan') {
+          dietNote = '建议选择全素蛋白来源，并补充B12和Omega-3。';
+        }
+
+        // 计算BMI
+        const heightInMeters = heightNum / 100;
+        const bmi = (weightNum / (heightInMeters * heightInMeters)).toFixed(1);
+        let bmiStatus = bmi < 18.5 ? '体重不足' : bmi < 24.9 ? '正常' : bmi < 29.9 ? '超重' : '肥胖';
+
+        setPlan({
+          bmi,
+          bmiStatus,
+          calorieIntake: Math.round(calorieIntake),
+          protein,
+          fat,
+          carbs,
+          exercise: activityLevel === 'low' ? '每周3次30分钟有氧运动（如快走）' : '每周4-5次有氧+力量训练',
+          dietNote
+        });
+      };
+
+      return (
+        <section id="plan" className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">生成你的减肥计划</h2>
+            <form onSubmit={calculatePlan} className="bg-white p-6 rounded-lg shadow-md">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-gray-700 mb-2">体重 (kg)</label>
+                  <input
+                    type="number"
+                    name="weight"
+                    value={formData.weight}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="输入体重"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">身高 (cm)</label>
+                  <input
+                    type="number"
+                    name="height"
+                    value={formData.height}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="输入身高"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">年龄</label>
+                  <input
+                    type="number"
+                    name="age"
+                    value={formData.age}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                    placeholder="输入年龄"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">性别</label>
+                  <select
+                    name="gender"
+                    value={formData.gender}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="male">男</option>
+                    <option value="female">女</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">活动水平</label>
+                  <select
+                    name="activityLevel"
+                    value={formData.activityLevel}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="low">低（久坐）</option>
+                    <option value="medium">中（适度运动）</option>
+                    <option value="high">高（高强度运动）</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">体重目标</label>
+                  <select
+                    name="weightGoal"
+                    value={formData.weightGoal}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="lose">减肥</option>
+                    <option value="maintain">维持体重</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-gray-700 mb-2">饮食偏好</label>
+                  <select
+                    name="dietaryPreference"
+                    value={formData.dietaryPreference}
+                    onChange={handleChange}
+                    className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  >
+                    <option value="none">无特殊偏好</option>
+                    <option value="vegetarian">素食</option>
+                    <option value="vegan">纯素</option>
+                  </select>
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="mt-6 bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition"
+              >
+                生成计划
+              </button>
+            </form>
+
+            {plan && (
+              <div className="mt-8 bg-white p-6 rounded-lg shadow-md">
+                <h3 className="text-2xl font-semibold text-gray-800 mb-4">你的减脂计划</h3>
+                <p><strong>BMI：</strong> {plan.bmi} ({plan.bmiStatus})</p>
+                <p><strong>每日热量摄入：</strong> {plan.calorieIntake} 千卡</p>
+                <p><strong>蛋白质：</strong> {plan.protein} 克</p>
+                <p><strong>脂肪：</strong> {plan.fat} 克</p>
+                <p><strong>碳水化合物：</strong> {plan.carbs} 克</p>
+                <p><strong>运动建议：</strong> {plan.exercise}</p>
+                {plan.dietNote && <p><strong>饮食建议：</strong> {plan.dietNote}</p>}
+              </div>
+            )}
+          </div>
+        </section>
+      );
+    }
+
+    // Articles 组件
+    function ArticleCard({ title, excerpt, link }) {
+      return (
+        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+          <p className="text-gray-600 mb-4">{excerpt}</p>
+          <a href={link} className="text-teal-600 hover:underline">阅读更多</a>
+        </div>
+      );
+    }
+
+    function Articles() {
+      const articles = [
+        {
+          title: '科学减脂：饮食与运动的平衡',
+          excerpt: '了解如何通过合理的饮食和运动计划实现健康减脂。',
+          link: '#article1'
+        },
+        {
+          title: '初学者适合的低强度运动指南',
+          excerpt: '为肥胖人群设计的低强度运动指南，逐步提高体能。',
+          link: '#article2'
+        },
+        {
+          title: '减脂期间的营养建议',
+          excerpt: '掌握蛋白质、脂肪和碳水化合物的正确摄入比例。',
+          link: '#article3'
+        },
+        {
+          title: '减脂的心理调整技巧',
+          excerpt: '如何保持动力和积极心态，坚持减脂计划。',
+          link: '#article4'
+        },
+        {
+          title: '常见减脂误区及纠正',
+          excerpt: '避免这些常见的减脂错误，让你的计划更有效。',
+          link: '#article5'
+        },
+        {
+          title: '减脂期间的睡眠重要性',
+          excerpt: '良好的睡眠对减脂的作用及如何改善睡眠质量。',
+          link: '#article6'
+        }
+      ];
+
+      return (
+        <section id="articles" className="py-16 bg-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">减肥文章与资源</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {articles.map((article, index) => (
+                <ArticleCard key={index} {...article} />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // Products 组件
+    function ProductCard({ title, description, price }) {
+      return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+          <p className="text-gray-600 mb-4">{description}</p>
+          <p className="text-teal-600 font-bold mb-4">{price}</p>
+          <button className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition">立即购买</button>
+        </div>
+      );
+    }
+
+    function Products() {
+      const products = [
+        {
+          title: '7天减肥餐计划',
+          description: '科学设计的减肥餐计划，帮助您健康减重。',
+          price: '￥19.99'
+        },
+        {
+          title: '减肥补充剂套装',
+          description: '精选的减肥补充剂，支持您的减重之旅。',
+          price: '￥49.99'
+        },
+        {
+          title: '素食减脂餐计划',
+          description: '专为素食者设计的健康减脂餐计划。',
+          price: '￥24.99'
+        },
+        {
+          title: '健身器材推荐',
+          description: '适合家庭使用的减脂健身器材。',
+          price: '￥99.99'
+        },
+        {
+          title: '营养咨询服务',
+          description: '专业营养师为您量身定制减脂计划。',
+          price: '￥199.99'
+        }
+      ];
+
+      return (
+        <section id="products" className="py-16 bg-gray-50">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">我们的产品</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {products.map((product, index) => (
+                <ProductCard key={index} {...product} />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // Footer 组件
+    function Footer() {
+      return (
+        <footer className="bg-gray-800 text-white py-6">
+          <div className="max-w-7xl mx-auto px-4 text-center">
+            <p>© 2025 减脂助手。保留所有权利。</p>
+            <p className="mt-2">联系我们：support@weightloss.com</p>
+          </div>
+        </footer>
+      );
+    }
+
+    // App 组件
+    function App() {
+      const [isAuthenticated, setIsAuthenticated] = React.useState(false);
+      if (!isAuthenticated) {
+        return <Login onLogin={setIsAuthenticated} />;
+      }
+      return (
+        <div>
+          <Navbar />
+          <Hero />
+          <PlanGenerator />
+          <Articles />
+          <Products />
+          <Footer />
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+  </script>
+</body>
+</html>
