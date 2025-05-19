@@ -14,19 +14,27 @@
   <script type="text/babel">
     // Login 组件
     function Login({ onLogin }) {
+      const [username, setUsername] = React.useState('');
       const [password, setPassword] = React.useState('');
       const handleSubmit = (e) => {
         e.preventDefault();
-        if (password === '123456789') {
+        if (username === '123456789' && password === '123456789') {
           onLogin(true);
         } else {
-          alert('密码错误');
+          alert('账号或密码错误');
         }
       };
       return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-teal-100 to-blue-100">
           <form onSubmit={handleSubmit} className="bg-white p-6 rounded shadow-md">
-            <h2 className="text-2xl mb-4">请输入密码</h2>
+            <h2 className="text-2xl mb-4">登录减脂助手</h2>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="border p-2 w-full mb-4"
+              placeholder="账号"
+            />
             <input
               type="password"
               value={password}
@@ -51,6 +59,7 @@
             <div className="space-x-4">
               <a href="#home" className="text-gray-700 hover:text-teal-600">首页</a>
               <a href="#plan" className="text-gray-700 hover:text-teal-600">减肥计划</a>
+              <a href="#courses" className="text-gray-700 hover:text-teal-600">直播课程</a>
               <a href="#articles" className="text-gray-700 hover:text-teal-600">文章资源</a>
               <a href="#products" className="text-gray-700 hover:text-teal-600">产品</a>
             </div>
@@ -143,7 +152,7 @@
       };
 
       return (
-        <section id="plan" className="py-16 bg-gray-50">
+        <section id="plan" className="py-16 bg-gradient-to-b from-gray-50 to-teal-50">
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">生成你的减肥计划</h2>
             <form onSubmit={calculatePlan} className="bg-white p-6 rounded-lg shadow-md">
@@ -260,6 +269,217 @@
       );
     }
 
+    // LiveCourses 组件
+    function CourseCard({ title, description, link }) {
+      return (
+        <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+          <p className="text-gray-600 mb-4">{description}</p>
+          <a href={link} target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline">立即跟练</a>
+        </div>
+      );
+    }
+
+    function LiveCourses() {
+      const courses = [
+        {
+          title: '15分钟燃脂HIIT训练',
+          description: '适合初学者的全身高强度间歇训练，快速提升代谢。',
+          link: 'https://www.youtube.com/watch?v=example-hiit'
+        },
+        {
+          title: '瑜伽减脂塑形课程',
+          description: '通过瑜伽动作放松身心，改善体态，适合所有水平。',
+          link: 'https://www.bilibili.com/video/example-yoga'
+        },
+        {
+          title: '30分钟有氧运动',
+          description: '轻松跟练的有氧操，适合居家锻炼，燃脂效果显著。',
+          link: 'https://www.youtube.com/watch?v=example-aerobic'
+        },
+        {
+          title: '核心力量训练',
+          description: '专注腹部和核心肌群，打造紧实身形。',
+          link: 'https://www.bilibili.com/video/example-core'
+        }
+      ];
+
+      return (
+        <section id="courses" className="py-16 bg-gradient-to-b from-teal-50 to-white">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">直播健身课程</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {courses.map((course, index) => (
+                <CourseCard key={index} {...course} />
+              ))}
+            </div>
+          </div>
+        </section>
+      );
+    }
+
+    // PurchaseForm 组件
+    function PurchaseForm({ product, onClose }) {
+      const [formData, setFormData] = React.useState({
+        phone: '',
+        address: '',
+        quantity: 1
+      });
+
+      const handleChange = (e) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+      };
+
+      const handleSubmit = (e) => {
+        e.preventDefault();
+        if (!formData.phone || !formData.address || formData.quantity < 1) {
+          alert('请填写所有必填字段并确保数量有效');
+          return;
+        }
+        alert(`订单提交成功！\n产品：${product.title}\n价格：${product.price}\n数量：${formData.quantity}\n电话：${formData.phone}\n地址：${formData.address}`);
+        onClose();
+      };
+
+      return (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-100 p-6 rounded-lg shadow-md max-w-lg w-full">
+            <h3 className="text-2xl font-semibold text-gray-800 mb-4">购买 {product.title}</h3>
+            <p className="text-gray-600 mb-4">价格：{product.price}</p>
+            <form onSubmit={handleSubmit}>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">电话号码</label>
+                <input
+                  type="tel"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="输入电话号码"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">配送地址</label>
+                <input
+                  type="text"
+                  name="address"
+                  value={formData.address}
+                  onChange={handleChange}
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  placeholder="输入配送地址"
+                  required
+                />
+              </div>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">购买数量</label>
+                <input
+                  type="number"
+                  name="quantity"
+                  value={formData.quantity}
+                  onChange={handleChange}
+                  min="1"
+                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600 transition"
+                >
+                  取消
+                </button>
+                <button
+                  type="submit"
+                  className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition"
+                >
+                  确认购买
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      );
+    }
+
+    // ProductCard 组件
+    function ProductCard({ title, description, price, onPurchase }) {
+      return (
+        <div className="bg-white p-6 rounded-lg shadow-md">
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+          <p className="text-gray-600 mb-4">{description}</p>
+          <p className="text-teal-600 font-bold mb-4">{price}</p>
+          <button
+            onClick={onPurchase}
+            className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition"
+          >
+            立即购买
+          </button>
+        </div>
+      );
+    }
+
+    // Products 组件
+    function Products() {
+      const [selectedProduct, setSelectedProduct] = React.useState(null);
+      const products = [
+        {
+          title: '7天体验包',
+          description: '科学设计的减肥餐计划，帮助您健康减重。',
+          price: '￥19.99'
+        },
+        {
+          title: '21天学期基础套餐',
+          description: '精选的减肥补充剂，支持您的减重之旅。',
+          price: '￥129'
+        },
+        {
+          title: 'VIP年卡',
+          description: '2人拼团价109，三人拼团99元，7天打卡返现10元。',
+          price: '￥399'
+        },   
+        {
+          title: '宿舍团体定制',
+          description: '前50名报名更可享体脂秤一台！朋友圈打卡满10天送奶茶券。',
+          price: '￥599'
+        },
+        {
+          title: '素食减脂餐计划',
+          description: '专为素食者设计的健康减脂餐计划。',
+          price: '￥24.99'
+        },
+        {
+          title: '营养咨询服务',
+          description: '专业营养师为您量身定制减脂计划。',
+          price: '￥199.99'
+        }
+      ];
+
+      return (
+        <section id="products" className="py-16 bg-gradient-to-b from-gray-50 to-teal-100">
+          <div className="max-w-6xl mx-auto px-4">
+            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">我们的产品</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {products.map((product, index) => (
+                <ProductCard
+                  key={index}
+                  {...product}
+                  onPurchase={() => setSelectedProduct(product)}
+                />
+              ))}
+            </div>
+          </div>
+          {selectedProduct && (
+            <PurchaseForm
+              product={selectedProduct}
+              onClose={() => setSelectedProduct(null)}
+            />
+          )}
+        </section>
+      );
+    }
+
     // Articles 组件
     function ArticleCard({ title, excerpt, link }) {
       return (
@@ -306,77 +526,12 @@
       ];
 
       return (
-        <section id="articles" className="py-16 bg-white">
+        <section id="articles" className="py-16 bg-gradient-to-b from-blue-50 to-white">
           <div className="max-w-6xl mx-auto px-4">
             <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">减肥文章与资源</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {articles.map((article, index) => (
                 <ArticleCard key={index} {...article} />
-              ))}
-            </div>
-          </div>
-        </section>
-      );
-    }
-
-    // Products 组件
-    function ProductCard({ title, description, price }) {
-      return (
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
-          <p className="text-gray-600 mb-4">{description}</p>
-          <p className="text-teal-600 font-bold mb-4">{price}</p>
-          <button className="bg-teal-600 text-white py-2 px-4 rounded hover:bg-teal-700 transition">立即购买</button>
-        </div>
-      );
-    }
-
-    function Products() {
-      const products = [
-        {
-          title: '7天体验包',
-          description: '科学设计的减肥餐计划，帮助您健康减重。',
-          price: '￥19.99'
-        },
-        {
-          title: '21天学期基础套餐',
-          description: '精选的减肥补充剂，支持您的减重之旅。',
-          price: '￥129'
-        },
-        {
-          title: 'VIP年卡',
-          description: '2人拼团价109，三人拼团99元，7天打卡返现10元。',
-          price: '￥399'
-        },   
-        {
-          title: '宿舍团体定制',
-          description: '前50名报名更可享体脂秤一台！朋友圈打卡满10天送奶茶券。',
-          price: '￥599'
-        },
-           {
-          title: '素食减脂餐计划',
-          description: '专为素食者设计的健康减脂餐计划。',
-          price: '￥24.99'
-        },
-        {
-          title: '健身器材推荐',
-          description: '适合家庭使用的减脂健身器材。',
-          price: '￥99.99'
-        },
-        {
-          title: '营养咨询服务',
-          description: '专业营养师为您量身定制减脂计划。',
-          price: '￥199.99'
-        }
-      ];
-
-      return (
-        <section id="products" className="py-16 bg-gray-50">
-          <div className="max-w-6xl mx-auto px-4">
-            <h2 className="text-3xl font-bold text-center text-gray-800 mb-8">我们的产品</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {products.map((product, index) => (
-                <ProductCard key={index} {...product} />
               ))}
             </div>
           </div>
@@ -407,6 +562,7 @@
           <Navbar />
           <Hero />
           <PlanGenerator />
+          <LiveCourses />
           <Articles />
           <Products />
           <Footer />
